@@ -26,33 +26,37 @@ public class CoffeMaker {
         this.methods.put("hello", () -> System.out.println("Hello!"));
         this.methods.put(MAKE_COFFEE, this::makeCoffee);
         this.methods.put("status", this::showStatus);
+        this.methods.put("exit", () -> System.exit(0));
 
         this.recipes = new HashMap<>();
         this.recipes.put(MAKE_COFFEE, createCoffeeRecipe());
     }
 
     public void callCommand(String command) {
-        if (command.contains(".rcp")) {
+
+        Optional<File> file = Optional.empty();
+        if (command.split(" ").length > 1) {
+            file = Optional.of(new File(System.getProperty("user.dir") +
+                    "\\src\\main\\java\\com\\epam\\workshops\\" +
+                    command.split(" ")[1] + ".rcp"));
+        }
+
+        Method method = this.methods.get(command.toLowerCase(Locale.ROOT));
+        if (method != null) {
+            method.execute();
+        } else if (command.split(" ").length > 1 && file.isPresent() && file.get().exists()) {
             try {
-                makeBeverageFromFile(command);
+                makeBeverageFromFile(file.get());
             } catch (FileNotFoundException e) {
-                System.out.println("File not found " + command.split(" ")[1]);
+                // Intentional ignore, since existence of file is checked earlier
             }
         } else {
-            Method method = this.methods.get(command.toLowerCase(Locale.ROOT));
-            if (method != null) {
-                method.execute();
-            } else {
-                System.out.println("Unknown Command");
-            }
+            System.out.println("Unknown Command");
         }
     }
 
-    private void makeBeverageFromFile(String command) throws FileNotFoundException {
-        String pathname = System.getProperty("user.dir") +
-                "\\src\\main\\java\\com\\epam\\workshops\\" +
-                command.split(" ")[1];
-        Scanner scanner = new Scanner(new File(pathname));
+    private void makeBeverageFromFile(File file) throws FileNotFoundException {
+        Scanner scanner = new Scanner(file);
 
         Recipe recipe = new Recipe();
         while (scanner.hasNextLine()) {
@@ -99,7 +103,7 @@ public class CoffeMaker {
         if (recipe.getTotal(Ingredient.COFFEE) > ingredientsAmount.get(Ingredient.COFFEE)) {
             System.out.println("Not enough coffee!");
         } else if (recipe.getTotal(Ingredient.WATER) > ingredientsAmount.get(Ingredient.WATER)) {
-            System.out.println("Not enough coffee!");
+            System.out.println("Not enough water!");
         } else if (recipe.getTotal(Ingredient.MILK) > ingredientsAmount.get(Ingredient.MILK)) {
             System.out.println("Not enough milk!");
         } else if (recipe.getTotal(Ingredient.COCOA) > ingredientsAmount.get(Ingredient.COCOA)) {
