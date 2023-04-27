@@ -27,6 +27,7 @@ public class CoffeMaker {
         this.methods.put(MAKE_COFFEE, this::makeCoffee);
         this.methods.put("status", this::showStatus);
         this.methods.put("exit", () -> System.exit(0));
+        this.methods.put("priviet", () -> System.out.println("Priviet!"));
 
         this.recipes = new HashMap<>();
         this.recipes.put(MAKE_COFFEE, createCoffeeRecipe());
@@ -35,16 +36,17 @@ public class CoffeMaker {
     public void callCommand(String command) {
 
         Optional<File> file = Optional.empty();
-        if (command.split(" ").length > 1) {
+        String[] afterSplit = command.split(" ");
+        if (afterSplit.length > 1) {
             file = Optional.of(new File(System.getProperty("user.dir") +
                     "\\src\\main\\java\\com\\epam\\workshops\\" +
-                    command.split(" ")[1] + ".rcp"));
+                    afterSplit[1] + ".rcp"));
         }
 
         Method method = this.methods.get(command.toLowerCase(Locale.ROOT));
         if (method != null) {
             method.execute();
-        } else if (command.split(" ").length > 1 && file.isPresent() && file.get().exists()) {
+        } else if (afterSplit[0].equals("make") && afterSplit.length > 1 && file.isPresent() && file.get().exists()) {
             try {
                 makeBeverageFromFile(file.get());
             } catch (FileNotFoundException e) {
